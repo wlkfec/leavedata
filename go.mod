@@ -10,4 +10,5 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
+	github.com/tealeg/xlsx v1.0.5
 )
