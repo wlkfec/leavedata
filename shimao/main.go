@@ -5,25 +5,17 @@ import (
 	"makeuse/entity"
 )
 
+type User struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
+}
+
 func main() {
+	talkDetails := entity.GetTalkDetailsFromDB()
 
-	entity.CreateKnowChannelTemp()
+	getProjectInfoFromDB := talkDetails.GetProjectInfoFromDB()
 
-	//talkDetails := entity.GetTalkDetailsFromDB()
-	//
-	//getProjectInfoFromDB := talkDetails.GetProjectInfoFromDB()
-	//
-	//talkDetail := talkDetails[48]
-	//
-	//customerDetail := talkDetail.GetCustomerDetailByTalkDetail()
-	//
-	//customerDetail.GetCustomerTagByCustomerId()
-	//
-	//mqPushData := talkDetail.BuildMqPushData(getProjectInfoFromDB[talkDetail.ProjectId])
-	//fmt.Println(" ..... ..... ..... ..... ..... ..... ..... ..... ")
-	////marshal, _ := json.Marshal(knowChannelValues)
-	//f, _ := os.OpenFile("demo.txt", os.O_CREATE|os.O_RDWR, 0660)
-	//defer f.Close()
-	//f.WriteString(mqPushData)
-	//fmt.Println(" ..... ..... ..... ..... ..... ..... ..... ..... ")
+	talkDetail := talkDetails[48]
+
+	_ = talkDetail.BuildMqPushData(getProjectInfoFromDB[talkDetail.ProjectId])
 }

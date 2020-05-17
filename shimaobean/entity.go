@@ -6,16 +6,16 @@ import (
 )
 
 type PostCustomerDataDTO struct {
-	Head       string
-	CreateTime time.Time
-	Data       PostCustomerDataInnerDTO
-	MerchantId string
+	Head       string                   `json:"head"`
+	CreateTime int64                    `json:"createTime"`
+	Data       PostCustomerDataInnerDTO `json:"data"`
+	MerchantId string                   `json:"merchantId"`
 }
 
 func CreateShiMaoPushData() *PostCustomerDataDTO {
 	return &PostCustomerDataDTO{
 		Head:       "getFiledRecord",
-		CreateTime: time.Now(),
+		CreateTime: time.Now().UnixNano() / 1e6,
 		MerchantId: "808FD400684443C88E02B9A8529B5F39",
 		Data: PostCustomerDataInnerDTO{
 			RingDuration:  10,
@@ -44,31 +44,31 @@ func CreateShiMaoPushData() *PostCustomerDataDTO {
 }
 
 type PostCustomerDataInnerDTO struct {
-	RingDuration  int
-	CustomerState int
-	Uuid          string
-	CallTime      string
-	Duration      int
-	Phone         string
-	CallStatus    int
-	FileName      string
-	Name          string
-	Sex           string
-	Connect       bool
-	SalerName     string
-	SalerId       string
-	IsExist       string
-	Note          string
-	Location      string
-	ChannelType   string
-	Account       string
-	AccountName   string
-	Tags          string
-	Intent        IntentValue
+	RingDuration  int         `json:"ringDuration"`
+	CustomerState int         `json:"customerState"`
+	Uuid          string      `json:"uuid"`
+	CallTime      string      `json:"callTime"`
+	Duration      int         `json:"duration"`
+	Phone         string      `json:"phone"`
+	CallStatus    int         `json:"callStatus"`
+	FileName      string      `json:"fileName"`
+	Name          string      `json:"name"`
+	Sex           string      `json:"sex"`
+	Connect       bool        `json:"connect"`
+	SalerName     string      `json:"salerName"`
+	SalerId       string      `json:"salerId"`
+	IsExist       string      `json:"isExist"`
+	Note          string      `json:"note"`
+	Location      string      `json:"location"`
+	ChannelType   string      `json:"channelType"`
+	Account       string      `json:"account"`
+	AccountName   string      `json:"accountName"`
+	Tags          string      `json:"tags"`
+	Intent        IntentValue `json:"intent"`
 }
 
 type IntentValue struct {
-	Level string
-	Name  string
-	Id    string
+	Level string `json:"level"`
+	Name  string `json:"name"`
+	Id    string `json:"id"`
 }

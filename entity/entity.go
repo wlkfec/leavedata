@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/orm"
 	"io/ioutil"
+	"makeuse/config"
 	"makeuse/constant"
 	"makeuse/shimaobean"
 	"strings"
@@ -35,13 +36,13 @@ type IntentsValues struct {
 	Id    string `json:"id"`
 }
 type TagsValues struct {
-	IsRequired bool              `json:"isRequired"`
-	Values     []TagsValuesInner `json:"values"`
-	Name       string            `json:"name"`
-	Index      int               `json:"index"`
-	Modifiable bool              `json:"modifiable"`
-	IsRadio    bool              `json:"isRadio"`
-	Key        string            `json:"key"`
+	IsRequired bool        `json:"isRequired"`
+	Values     interface{} `json:"values"`
+	Name       string      `json:"name"`
+	Index      int         `json:"index"`
+	Modifiable bool        `json:"modifiable"`
+	IsRadio    bool        `json:"isRadio"`
+	Key        string      `json:"key"`
 }
 type TagsValuesInner struct {
 	Name string `json:"name"`
@@ -146,23 +147,6 @@ func CreateRoot() *Root {
 	return &root
 }
 
-func CreateKnowChannel() []*TagsValues {
-	var (
-		fileBytes []byte
-		err       error
-		values    []*TagsValues
-	)
-	if fileBytes, err = ioutil.ReadFile("know_channel.json"); err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	if err = json.Unmarshal(fileBytes, &values); err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	return values
-}
-
 type TagsValuesTemp struct {
 	IsRequired bool        `json:"isRequired"`
 	Values     interface{} `json:"values"`
@@ -171,28 +155,6 @@ type TagsValuesTemp struct {
 	Modifiable bool        `json:"modifiable"`
 	IsRadio    bool        `json:"isRadio"`
 	Key        string      `json:"key"`
-}
-
-func CreateKnowChannelTemp() interface{} {
-	var (
-		fileBytes []byte
-		err       error
-		values    []*TagsValuesTemp
-	)
-	if fileBytes, err = ioutil.ReadFile("know_channel.json"); err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	if err = json.Unmarshal(fileBytes, &values); err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	fmt.Println((*values[0]).Values)
-	tagsValues, ok := ((*values[0]).Values).([]interface{})
-	fmt.Println(tagsValues)
-	println(ok)
-
-	return values
 }
 
 /**
@@ -326,21 +288,53 @@ func (talkDetail *TalkDetail) BuildMqPushData(projectGuid string) string {
 	for _, tagValue := range tagsValues {
 		switch tagValue.Name {
 		case constant.Gender:
-			tagValue.Values = []TagsValuesInner{{Name: customerDetail.Gender}}
+			if customerDetail.Gender != "" {
+				tagValue.Values = []TagsValuesInner{{Name: customerDetail.Gender}}
+			} else {
+				tagValue.Values = []TagsValuesInner{}
+			}
 		case constant.IntentionalFormat:
-			tagValue.Values = []TagsValuesInner{{Name: customerTag.Intent}}
+			if customerTag.Intent != "" {
+				tagValue.Values = []TagsValuesInner{{Name: customerTag.Intent}}
+			} else {
+				tagValue.Values = []TagsValuesInner{}
+			}
 		case constant.CustomerGroup:
-			tagValue.Values = []TagsValuesInner{{Name: customerTag.Consumer}}
+			if customerTag.Consumer != "" {
+				tagValue.Values = []TagsValuesInner{{Name: customerTag.Consumer}}
+			} else {
+				tagValue.Values = []TagsValuesInner{}
+			}
 		case constant.IntentionType:
-			tagValue.Values = []TagsValuesInner{{Name: customerTag.HouseType}}
+			if customerTag.HouseType != "" {
+				tagValue.Values = []TagsValuesInner{{Name: customerTag.HouseType}}
+			} else {
+				tagValue.Values = []TagsValuesInner{}
+			}
 		case constant.HomePurpose:
-			tagValue.Values = []TagsValuesInner{{Name: customerTag.HouseTarget}}
+			if customerTag.HouseTarget != "" {
+				tagValue.Values = []TagsValuesInner{{Name: customerTag.HouseTarget}}
+			} else {
+				tagValue.Values = []TagsValuesInner{}
+			}
 		case constant.CustomerType:
-			tagValue.Values = []TagsValuesInner{{Name: customerTag.ConsumerType}}
+			if customerTag.ConsumerType != "" {
+				tagValue.Values = []TagsValuesInner{{Name: customerTag.ConsumerType}}
+			} else {
+				tagValue.Values = []TagsValuesInner{}
+			}
 		case constant.IntentToList:
-			tagValue.Values = []TagsValuesInner{{Name: customerTag.IntentHouse}}
+			if customerTag.IntentHouse != "" {
+				tagValue.Values = []TagsValuesInner{{Name: customerTag.IntentHouse}}
+			} else {
+				tagValue.Values = []TagsValuesInner{}
+			}
 		case constant.Resistance:
-			tagValue.Values = []TagsValuesInner{{Name: customerTag.Resistance}}
+			if customerTag.Resistance != "" {
+				tagValue.Values = []TagsValuesInner{{Name: customerTag.Resistance}}
+			} else {
+				tagValue.Values = []TagsValuesInner{}
+			}
 		case constant.FocusPoint:
 			attention := customerTag.Attention
 			if attention != "" {
@@ -349,11 +343,19 @@ func (talkDetail *TalkDetail) BuildMqPushData(projectGuid string) string {
 					inners = append(inners, TagsValuesInner{Name: str})
 				}
 				tagValue.Values = inners
+			} else {
+				tagValue.Values = []TagsValuesInner{}
 			}
 		case constant.CognitiveChannel:
+			bytes, err := json.Marshal(tagValue.Values)
+			if err != nil {
+				fmt.Println(err)
+			}
+			err = json.Unmarshal(bytes, &knowChannelValues)
+			if err != nil {
+				fmt.Println(err)
+			}
 			if customerTag.KnowChannel != "" {
-				// important
-				knowChannelValues = CreateKnowChannel()
 				c := make(map[string][]string)
 				for _, s1 := range strings.Split(customerTag.KnowChannel, ",") {
 					strs := strings.Split(s1, "-")
@@ -363,7 +365,6 @@ func (talkDetail *TalkDetail) BuildMqPushData(projectGuid string) string {
 						c[strs[0]] = []string{strs[1]}
 					}
 				}
-				// 拓展渠道-呼叫中心,活动-导客活动,传统媒体-报纸杂志
 				for _, kcV := range knowChannelValues {
 					subContents := c[kcV.Name]
 					var tagsValuesInner []TagsValuesInner
@@ -376,13 +377,19 @@ func (talkDetail *TalkDetail) BuildMqPushData(projectGuid string) string {
 						kcV.Values = make([]TagsValuesInner, 0)
 					}
 				}
+				tagValue.Values = knowChannelValues
+			} else {
+				for _, kcV := range knowChannelValues {
+					kcV.Values = make([]TagsValuesInner, 0)
+				}
+				tagValue.Values = knowChannelValues
 			}
 		}
+
 	}
 	bytes1, _ := json.Marshal(baseData)
 	bytes2, _ := json.Marshal(root.UpdateFieldParameter.Data.Tags)
-	bytes3, _ := json.Marshal(knowChannelValues)
-	return strings.ReplaceAll(string(bytes1), "\"dd\"", strings.ReplaceAll(string(bytes2), "[{\"name\":\"认知渠道\"}]", string(bytes3)))
+	return strings.ReplaceAll(string(bytes1), "\"dd\"", string(bytes2))
 }
 
 // ===== ===== ===== ===== ===== ===== < end > ===== ===== ===== ===== ===== =====
@@ -391,7 +398,7 @@ func init() {
 	if err := orm.RegisterDataBase(
 		"default",
 		"mysql",
-		"root@tcp(localhost:3306)/test"); err != nil {
+		config.Config.MySQLDataSource); err != nil {
 		fmt.Println(err)
 		return
 	}

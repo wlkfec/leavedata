@@ -4,19 +4,12 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
-)
-
-var (
-	uri          = "amqp://guest:guest@localhost:5672/"
-	exchangeName = "test-exchange"
-	exchangeType = "direct"
-	routingKey   = "test-key"
-	queueName    = "test-queue"
+	"makeuse/config"
 )
 
 func Publish(body string) error {
-	log.Printf("dialing %q", uri)
-	connection, err := amqp.Dial(uri)
+	log.Printf("dialing %q", config.Config.MQuri)
+	connection, err := amqp.Dial(config.Config.MQuri)
 	if err != nil {
 		return fmt.Errorf("Dial: %s", err)
 	}
@@ -26,10 +19,10 @@ func Publish(body string) error {
 	if err != nil {
 		return fmt.Errorf("Channel: %s", err)
 	}
-	log.Printf("got Channel, declaring %q Exchange (%q)", exchangeType, exchangeName)
+	log.Printf("got Channel, declaring %q Exchange (%q)", config.Config.MQexchangeType, config.Config.MQexchangeName)
 	if err := channel.ExchangeDeclare(
-		exchangeName, // name
-		exchangeType, // type
+		config.Config.MQexchangeName, // name
+		config.Config.MQexchangeType, // type
 		true,         // durable
 		false,        // auto-deleted
 		false,        // internal
@@ -39,16 +32,16 @@ func Publish(body string) error {
 		return fmt.Errorf("Exchange Declare: %s", err)
 	}
 	log.Printf("declared Exchange, publishing %dB body (%q)", len(body), body)
-	if _, err = channel.QueueDeclare(queueName, true, false, false, false, nil); err != nil {
+	if _, err = channel.QueueDeclare(config.Config.MQqueueName, true, false, false, false, nil); err != nil {
 		return fmt.Errorf("Queue Declare: %s", err)
 	}
-	if err = channel.QueueBind(queueName, routingKey, exchangeName, false, nil); err != nil {
+	if err = channel.QueueBind(config.Config.MQqueueName, config.Config.MQroutingKey, config.Config.MQexchangeName, false, nil); err != nil {
 		return fmt.Errorf("Queue Bind: %s", err)
 	}
 	// send message
 	if err = channel.Publish(
-		exchangeName, // publish to an exchange
-		routingKey,   // routing to 0 or more queues
+		config.Config.MQexchangeName, // publish to an exchange
+		config.Config.MQroutingKey,   // routing to 0 or more queues
 		false,        // mandatory
 		false,        // immediate
 		amqp.Publishing{
